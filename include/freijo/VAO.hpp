@@ -13,19 +13,44 @@
 
 namespace freijo {
 
+class VAO_base
+{
+public:
+    VAO_base() { glGenVertexArrays(1, &_id); }
+    ~VAO_base() { glDeleteVertexArrays(1, &_id); }
+    
+    void bind() const { glBindVertexArray(_id); }    
+    void unbind() const { glBindVertexArray(0); }
+    
+    unsigned int id() const noexcept { return _id; }
+protected:    
+    unsigned int _id{0};
+};
+    
+/* RAII to bind()/unbind() */ 
+class scoped_vao_bind
+{
+public:
+    explicit scoped_vao_bind(const VAO_base& vao_base)
+        : _vao_base(vao_base)
+    { _vao_base.bind(); }
+    
+    ~scoped_vao_bind() { _vao_base.unbind(); }
+    
+    scoped_vao_bind(const scoped_vao_bind&) = delete;
+    scoped_vao_bind& operator=(const scoped_vao_bind&) = delete;
+private:
+    const VAO_base& _vao_base;
+};
+    
 /* VAO (Vertex Array Object)
  *
  * Model the concepts Movable and EqualityComparable.
  */            
-class VAO
+class VAO : public VAO_base
 {
 public:
-    VAO() { glGenVertexArrays(1, &_id); }
-    
-    ~VAO() { glDeleteVertexArrays(1, &_id); }
-    
-    VAO(const VAO&) = delete;
-    VAO& operator=(const VAO&) = delete;
+    VAO() = default;
     
     VAO(VAO&& o) noexcept
     { std::swap(_id, o._id); }
@@ -36,62 +61,39 @@ public:
         return *this;
     }
     
-    void bind() const { glBindVertexArray(_id); }
-    void unbind() const { glBindVertexArray(0); }
-
     template<typename VBO>
-    void attach(std::size_t index, const VBO& vbo)
+    void attach(std::size_t index, const VBO& vbo,
+                GLboolean normalized = GL_FALSE,
+                GLsizei stride = 0,
+                const GLvoid* pointer = nullptr)
     {
-        scoped_bind bg(*this);
-        glBindBuffer(VBO::target::target, vbo.id());
+        scoped_vao_bind sb(*this);
+        scoped_buffer_bind<VBO> sbb(vbo);
         glVertexAttribPointer(index,
                               VBO::target::size,
                               VBO::target::type,
-                              GL_FALSE, 0, nullptr);
+                              normalized, stride, pointer);
+        glEnableVertexAttribArray(index);
+    }
+
+    void detach(std::size_t index)
+    {
+        scoped_vao_bind sb(*this);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glDisableVertexAttribArray(index);
+    }
+    
+    void enable_attrib(std::size_t index)
+    {
+        scoped_vao_bind sb(*this);
         glEnableVertexAttribArray(index);
     }
             
-    void detach(std::size_t index)
+    void disable_attrib(std::size_t index)
     {
-        scoped_bind bg(*this);
-        glVertexAttribPointer(index,
-                              4,
-                              GL_FLOAT,
-                              GL_FALSE, 0, nullptr);
+        scoped_vao_bind sb(*this);
         glDisableVertexAttribArray(index);
-    }
-            
-    template<typename IBO>
-    void attach(const IBO& ibo)
-    {
-        scoped_bind bg(*this);
-        glBindBuffer(IBO::target::target, ibo.id());
-    }
-
-    template<typename IBO>
-    void detach(const IBO& ibo)
-    {
-        scoped_bind bg(*this);
-        glBindBuffer(IBO::target::target, 0);
-    }
-    
-    unsigned int id() const noexcept { return _id; }
-    
-    /* RAII to bind()/unbind() */ 
-    class scoped_bind
-    {
-    public:
-        explicit scoped_bind(const VAO& vao) : _vao(vao) { _vao.bind(); }
-        ~scoped_bind() { _vao.unbind(); }
-    
-        scoped_bind(const scoped_bind&) = delete;
-        scoped_bind& operator=(const scoped_bind&) = delete;
-    private:
-        const VAO& _vao;
-    };
-    
-private:
-    unsigned int _id{0};
+    }    
 };
 
 inline

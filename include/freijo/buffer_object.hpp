@@ -105,12 +105,12 @@ struct ElementArray
 };
 
 //RAII para glBindBuffer.
-struct bind_buffer_guard
+struct scoped_target_buffer_bind
 {
-    bind_buffer_guard(GLenum target, GLuint id) : target(target)
+    scoped_target_buffer_bind(GLenum target, GLuint id) : target(target)
     { glBindBuffer(target, id); }
     
-    ~bind_buffer_guard() { glBindBuffer(target, 0); }
+    ~scoped_target_buffer_bind() { glBindBuffer(target, 0); }
 
     GLenum target;
 };
@@ -318,7 +318,7 @@ public:
     value_type* map(GLenum access) const
     {
         assert(*this != BufferObject());
-        bind_buffer_guard bbg(target::target, _id);
+        scoped_target_buffer_bind bbg(target::target, _id);
         auto p = reinterpret_cast<value_type*>
             (glMapBuffer(target::target, access));
         return p;
@@ -334,11 +334,17 @@ public:
     GLboolean unmap() const
     {
         assert(*this != BufferObject());
-        bind_buffer_guard bbg(target::target, _id);
+        scoped_target_buffer_bind bbg(target::target, _id);
         auto res = glUnmapBuffer(target::target);
         return res;
     }
 
+    void bind() const
+    { glBindBuffer(target::target, _id); }
+
+    void unbind() const
+    { glBindBuffer(target::target, 0); }
+    
     /* Número de elementos alocados. */    
     std::size_t size() const noexcept {return _size;}
     
@@ -368,7 +374,7 @@ private:
     {
         _usage = usage;
         glGenBuffers(1, &_id);
-        bind_buffer_guard bbg(target::target, _id);
+        scoped_target_buffer_bind bbg(target::target, _id);
         glBufferData(target::target,
                      area(),
                      first,
@@ -380,8 +386,8 @@ private:
     {
         _size = o.size();
         alloc_buffer(o._usage);
-        bind_buffer_guard bbgr(GL_COPY_READ_BUFFER, o._id);
-        bind_buffer_guard bbgw(GL_COPY_WRITE_BUFFER, _id);
+        scoped_target_buffer_bind bbgr(GL_COPY_READ_BUFFER, o._id);
+        scoped_target_buffer_bind bbgw(GL_COPY_WRITE_BUFFER, _id);
         glCopyBufferSubData(GL_COPY_READ_BUFFER,
                             GL_COPY_WRITE_BUFFER,
                             0, 0,
@@ -412,5 +418,19 @@ inline bool operator!=(const BufferObject<T, Target>& lhs,
 //Alias template para instanciação de um VBO(Vertex Array Buffer); 
 template<typename ValueType>
 using VBO = BufferObject<ValueType, ArrayBuffer<ValueType>>;
- 
+
+template<typename BufferObject>
+class scoped_buffer_bind
+{
+public:
+    scoped_buffer_bind(const BufferObject& buffer)
+        : _buffer(buffer)
+    { _buffer.bind(); }
+
+    ~scoped_buffer_bind()
+    { _buffer.unbind(); }
+private:
+    const BufferObject& _buffer;
+};
+
 }
