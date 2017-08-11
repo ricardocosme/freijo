@@ -17,11 +17,11 @@
 namespace freijo {
 
 /// Represents a vertex shader
-struct vertex_shader
+struct vertex_t
 { static const GLenum glType{GL_VERTEX_SHADER}; };
 
 /// Represents a fragment shader
-struct fragment_shader
+struct fragment_t
 { static const GLenum glType{GL_FRAGMENT_SHADER}; };
 
 /// Abstraction to Shader Objects
@@ -103,5 +103,8 @@ private:
     // Source code
     std::string _src;
 };
- 
+
+using vertex_shader = shader<vertex_t>;
+using fragment_shader = shader<fragment_t>;
+    
 } 
