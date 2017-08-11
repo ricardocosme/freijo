@@ -115,7 +115,7 @@ struct scoped_target_buffer_bind
     GLenum target;
 };
 
-/* BufferObject é um objeto OpenGL que armazena um array de elementos
+/* buffer é um objeto OpenGL que armazena um array de elementos
    do tipo ValueType. O array é alocado por um contexto OpenGL, ou seja,
    na placa gráfica. Tipicamente são utilizados para armazenar os
    vértices de uma geometria e os seus respectivos atributos de desenho.
@@ -132,21 +132,21 @@ struct scoped_target_buffer_bind
    Modela o concept Regular.
  */
 template<typename ValueType, typename Target>
-class BufferObject
+class buffer
 {
 public:
     using value_type = ValueType;
     using target = Target;
 
     /* poscondition: size() == 0 && id() == 0 && usage() == GL_DYNAMIC_DRAW */
-    BufferObject() = default;
+    buffer() = default;
 
     /* Aloca um buffer com a cópia de std::vector<value_type>.
      *
      * /param c container.
      * /param usage Dica de uso do buffer. Ver especificação do OpenGL.
      */
-    BufferObject(std::vector<value_type> c,
+    buffer(std::vector<value_type> c,
                  GLenum usage = GL_DYNAMIC_DRAW)
     {
         _size = c.size();
@@ -159,7 +159,7 @@ public:
      * /param usage Dica de uso do buffer. Ver especificação do OpenGL.
      */
     template<std::size_t N>
-    BufferObject(std::array<value_type, N> c,
+    buffer(std::array<value_type, N> c,
                  GLenum usage = GL_DYNAMIC_DRAW)
     {
         _size = c.size();
@@ -177,7 +177,7 @@ public:
      * /param usage Dica de uso do buffer. Ver especificação do OpenGL.
      */
     template<typename ContiguousIt>
-    BufferObject(ContiguousIt first, ContiguousIt last,
+    buffer(ContiguousIt first, ContiguousIt last,
                  GLenum usage = GL_DYNAMIC_DRAW)
     {
         _size = std::distance(first, last);
@@ -191,7 +191,7 @@ public:
      * /param ilist Lista de elementos do tipo value_type.
      * /param usage Dica de uso do buffer. Ver especificação do OpenGL.
      */
-    BufferObject(const std::initializer_list<value_type>& ilist,
+    buffer(const std::initializer_list<value_type>& ilist,
                  GLenum usage = GL_DYNAMIC_DRAW)
     {
         _size = std::distance(ilist.begin(), ilist.end());
@@ -205,40 +205,40 @@ public:
      * /param count Número de elementos alocados.
      * /param usage Dica de uso do buffer. Ver especificação do OpenGL.
      */
-    BufferObject(std::size_t count,
+    buffer(std::size_t count,
                  GLenum usage = GL_DYNAMIC_DRAW)
     {
         _size = count;
         alloc_buffer(usage); 
     }
     
-    BufferObject(const BufferObject& rhs)
+    buffer(const buffer& rhs)
     {
         copy_from(rhs);
     }
     
-    BufferObject& operator=(const BufferObject& rhs)
+    buffer& operator=(const buffer& rhs)
     {
         copy_from(rhs);
         return *this;
     }
         
-    friend void swap(BufferObject& a, BufferObject& b) noexcept
+    friend void swap(buffer& a, buffer& b) noexcept
     {
         std::swap(a._id, b._id);
         std::swap(a._size, b._size);
         std::swap(a._usage, b._usage);
     }
 
-    /* poscondition: rhs assume estado de BufferObject(). */
-    BufferObject(BufferObject&& rhs) noexcept
-        : BufferObject ()
+    /* poscondition: rhs assume estado de buffer(). */
+    buffer(buffer&& rhs) noexcept
+        : buffer ()
     {
         swap(*this, rhs);
     }
     
-    /* poscondition: rhs assume estado de BufferObject(). */
-    BufferObject& operator=(BufferObject&& rhs) noexcept
+    /* poscondition: rhs assume estado de buffer(). */
+    buffer& operator=(buffer&& rhs) noexcept
     {
         _id = rhs._id;
         _size = rhs._size;
@@ -249,7 +249,7 @@ public:
         return *this;
     }
     
-    ~BufferObject() { del_buffer(); }
+    ~buffer() { del_buffer(); }
 
     /* Redefine o conteúdo do buffer.
      * 
@@ -305,7 +305,7 @@ public:
 
     /* Retorna um ponteiro para value_type para o começo do buffer.
      *
-     * preconditions: this != BufferObject() && 
+     * preconditions: this != buffer() && 
      *
      * /param access Modo de acesso ao buffer GL_READ_ONLY, GL_WRITE_ONLY 
      *               ou GL_READ_WRITE. Deve ser compatível com BUFFER_USAGE
@@ -317,7 +317,7 @@ public:
      */    
     value_type* map(GLenum access) const
     {
-        assert(*this != BufferObject());
+        assert(*this != buffer());
         scoped_target_buffer_bind bbg(target::target, _id);
         auto p = reinterpret_cast<value_type*>
             (glMapBuffer(target::target, access));
@@ -326,14 +326,14 @@ public:
     
     /* Invalida o mapeamento do buffer.
      * 
-     * precondition: this != BufferObject() 
+     * precondition: this != buffer() 
      * poscondition: map(access) invalidado.
      * 
      * /return false se o conteúdo foi corrompido ou se não estiver mapeado.
      */    
     GLboolean unmap() const
     {
-        assert(*this != BufferObject());
+        assert(*this != buffer());
         scoped_target_buffer_bind bbg(target::target, _id);
         auto res = glUnmapBuffer(target::target);
         return res;
@@ -381,8 +381,8 @@ private:
                      _usage);
     }
 
-    template<typename BufferObject>
-    void copy_from(BufferObject&& o)
+    template<typename buffer>
+    void copy_from(buffer&& o)
     {
         _size = o.size();
         alloc_buffer(o._usage);
@@ -398,8 +398,8 @@ private:
 };
 
 template<typename T, typename Target>
-inline bool operator==(const BufferObject<T, Target>& lhs,
-                       const BufferObject<T, Target>& rhs)
+inline bool operator==(const buffer<T, Target>& lhs,
+                       const buffer<T, Target>& rhs)
 {
     if (lhs.size() != rhs.size()) return false;
     auto plhs = lhs.map(GL_READ_ONLY);
@@ -411,26 +411,26 @@ inline bool operator==(const BufferObject<T, Target>& lhs,
 }
 
 template<typename T, typename Target>
-inline bool operator!=(const BufferObject<T, Target>& lhs,
-                       const BufferObject<T, Target>& rhs)
+inline bool operator!=(const buffer<T, Target>& lhs,
+                       const buffer<T, Target>& rhs)
 { return !(lhs == rhs); }
 
 //Alias template para instanciação de um VBO(Vertex Array Buffer); 
 template<typename ValueType>
-using VBO = BufferObject<ValueType, ArrayBuffer<ValueType>>;
+using VBO = buffer<ValueType, ArrayBuffer<ValueType>>;
 
-template<typename BufferObject>
+template<typename buffer>
 class scoped_buffer_bind
 {
 public:
-    scoped_buffer_bind(const BufferObject& buffer)
-        : _buffer(buffer)
+    scoped_buffer_bind(const buffer& pbuffer)
+        : _buffer(pbuffer)
     { _buffer.bind(); }
 
     ~scoped_buffer_bind()
     { _buffer.unbind(); }
 private:
-    const BufferObject& _buffer;
+    const buffer& _buffer;
 };
 
 }

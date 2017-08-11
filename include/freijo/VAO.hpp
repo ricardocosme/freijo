@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "freijo/buffer_object.hpp"
+#include "freijo/buffer.hpp"
 
 #include <cstddef>
 #include <algorithm>
