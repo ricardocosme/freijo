@@ -47,8 +47,10 @@ project freijo_demos
     ;
 
 exe triangle : triangle.cpp ;
+exe rectangle : rectangle.cpp ;
 
 install stage
   : triangle
+    rectangle
   ;
 

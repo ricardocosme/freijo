@@ -96,10 +96,22 @@ struct ArrayBuffer
 };
 
 //Modelo de target ELEMENT_ARRAY. 
+template<typename T>
 struct ElementArray
 {
-    static const GLenum target = GL_ELEMENT_ARRAY_BUFFER;    
-    using type = std::size_t;
+    static const GLenum target = GL_ELEMENT_ARRAY_BUFFER;
+    static_assert(std::conditional<
+                    std::is_same<T, GLuint>::value,
+                    std::true_type,
+                    typename std::conditional<
+                      std::is_same<T, GLushort>::value,
+                      std::true_type,
+                      typename std::is_same<T, GLubyte>::type
+                    >::type
+                  >::type::value,
+                  "The type of the values must be GLubyte, GLushort or GLuint");
+    using type = T;
+    static const GLenum GLtype{GLTypeTraits<T>::type};
 };
 
 //RAII para glBindBuffer.
@@ -416,6 +428,9 @@ inline bool operator!=(const buffer<T, Target>& lhs,
 //Alias template para instanciação de um VBO(Vertex Array Buffer); 
 template<typename ValueType>
 using VBO = buffer<ValueType, ArrayBuffer<ValueType>>;
+
+template<typename ValueType>
+using EBO = buffer<ValueType, ElementArray<ValueType>>;
 
 template<typename buffer>
 class scoped_buffer_bind
