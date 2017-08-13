@@ -76,11 +76,25 @@ public:
         glEnableVertexAttribArray(index);
     }
 
+    template<typename EBO>
+    void attach(const EBO& ebo)
+    {
+        scoped_vao_bind sb(*this);
+        ebo.bind();
+    }    
+                
     void detach(std::size_t index)
     {
         scoped_vao_bind sb(*this);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glDisableVertexAttribArray(index);
+    }
+
+    template<typename EBO>
+    void detach(const EBO& ebo)
+    {
+        scoped_vao_bind sb(*this);
+        ebo.unbind();
     }
     
     void enable_attrib(std::size_t index)

@@ -81,6 +81,7 @@ int main()
         
         freijo::VAO vao;
         vao.attach(0, vertices);
+        vao.attach(idxs);
         
         while(!glfwWindowShouldClose(window))
         {
@@ -91,7 +92,6 @@ int main()
 
             program.use();
             freijo::scoped_vao_bind s(vao);
-            idxs.bind();
             glDrawElements(GL_TRIANGLES, idxs.size(),
                            decltype(idxs)::target::GLtype, 0);
 
