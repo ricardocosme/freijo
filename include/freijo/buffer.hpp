@@ -9,8 +9,6 @@
 #include <utility>
 #include <vector>
 #include <array>
-// #include <GL/glew.h>
-#include <GL/glext.h>
 #include <glm/glm.hpp>
 #include <glm/detail/precision.hpp>
 

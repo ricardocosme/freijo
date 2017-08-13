@@ -6,9 +6,6 @@
 
 #pragma once
 
-// #include <GL/glew.h>
-#include <GL/gl.h>
-
 #include <cassert>
 #include <stdexcept>
 #include <string>
@@ -18,11 +15,17 @@ namespace freijo {
 
 /// Represents a vertex shader
 struct vertex_t
-{ static const GLenum glType{GL_VERTEX_SHADER}; };
+{
+    static const GLenum glType{GL_VERTEX_SHADER};
+    static constexpr const char* name{"Vertex"};
+};
 
 /// Represents a fragment shader
 struct fragment_t
-{ static const GLenum glType{GL_FRAGMENT_SHADER}; };
+{
+    static const GLenum glType{GL_FRAGMENT_SHADER};
+    static constexpr const char* name{"Fragment"};
+};
 
 /// Abstraction to Shader Objects
 /// (Section 2.11.1 Shader Object at OpenGL 3.3 Core Profile)
@@ -64,7 +67,10 @@ public:
             glGetShaderiv(_id, GL_INFO_LOG_LENGTH, &length);
             std::vector<char> log(length);
             glGetShaderInfoLog(_id, length, &length, log.data());
-            throw std::runtime_error("Shader compile error: "
+            throw std::runtime_error(std::string(Type::name)
+                                     + " shader(id#"
+                                     + std::to_string(_id) + ") "
+                                     + "compile error "
                                      + std::string(log.data()));
         }        
     }

@@ -6,9 +6,6 @@
 
 #pragma once
 
-// #include <GL/glew.h>
-#include <GL/gl.h>
-
 #include <cassert>
 #include <stdexcept>
 #include <string>
@@ -87,6 +84,9 @@ public:
     GLuint id() const noexcept
     { return _id; }
 
+    void use() const noexcept
+    { glUseProgram(_id); }
+    
     ///Return the attached shaders
     const Shaders& shaders() const noexcept
     { return _shaders; }

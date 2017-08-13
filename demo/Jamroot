@@ -1,0 +1,54 @@
+project X ;
+lib X11 ;
+lib Xrandr ;
+lib Xinerama ;
+lib Xcursor ;
+lib Xxf86vm ;
+
+project pthread ;
+lib pthread ;
+
+project dl ;
+lib dl ;
+
+project rt ;
+lib rt ;
+
+project GLFW ;
+lib glfw3
+  :
+  : <file>/home/rcosme/build/glfw/build/src/libglfw3.a
+  ;
+
+project glad ;
+lib glad33
+  : /home/rcosme/build/glad33/src/glad.c
+  : <include>/home/rcosme/build/glad33/include
+  :
+  : <include>/home/rcosme/build/glad33/include
+  ;
+  
+project freijo_demos
+  : requirements
+    <cxxflags>-std=c++11
+    <include>/home/rcosme/build/glfw/include
+    <include>/home/rcosme/build/glm
+    <include>../include
+    <library>/dl//dl
+    <library>/rt//rt
+    <library>/glad//glad33
+    <library>/GLFW//glfw3
+    <library>/X//X11
+    <library>/X//Xrandr
+    <library>/X//Xinerama
+    <library>/X//Xcursor
+    <library>/X//Xxf86vm
+    <library>/pthread//pthread
+    ;
+
+exe triangle : triangle.cpp ;
+
+install stage
+  : triangle
+  ;
+
