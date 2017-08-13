@@ -63,16 +63,17 @@ public:
     
     template<typename VBO>
     void attach(std::size_t index, const VBO& vbo,
-                GLboolean normalized = GL_FALSE,
                 GLsizei stride = 0,
-                const GLvoid* pointer = nullptr)
+                std::size_t offset = 0,
+                GLboolean normalized = GL_FALSE)
     {
         scoped_vao_bind sb(*this);
         scoped_buffer_bind<VBO> sbb(vbo);
         glVertexAttribPointer(index,
                               VBO::target::size,
                               VBO::target::type,
-                              normalized, stride, pointer);
+                              normalized, stride,
+                              reinterpret_cast<void*>(offset));
         glEnableVertexAttribArray(index);
     }
 
