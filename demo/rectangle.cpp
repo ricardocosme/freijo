@@ -64,8 +64,8 @@ int main()
 
     {
         auto program = freijo::program{
-            {freijo::vertex_shader(vtxSrc).id()},
-            {freijo::fragment_shader(fragSrc).id()},
+            freijo::vertex_shader(vtxSrc).id(),
+            freijo::fragment_shader(fragSrc).id(),
         };
         freijo::VBO<glm::vec3> vertices{
             { 0.5,  0.5, 0},
