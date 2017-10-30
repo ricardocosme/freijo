@@ -65,7 +65,7 @@ public:
     void attach(std::size_t index, const VBO& vbo,
                 GLsizei stride = 0,
                 std::size_t offset = 0,
-                GLboolean normalized = GL_FALSE)
+                GLboolean normalized = GL_FALSE) const
     {
         scoped_vao_bind sb(*this);
         scoped_buffer_bind<VBO> sbb(vbo);
@@ -78,13 +78,13 @@ public:
     }
 
     template<typename EBO>
-    void attach(const EBO& ebo)
+    void attach(const EBO& ebo) const
     {
         scoped_vao_bind sb(*this);
         ebo.bind();
     }    
                 
-    void detach(std::size_t index)
+    void detach(std::size_t index) const
     {
         scoped_vao_bind sb(*this);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -92,19 +92,19 @@ public:
     }
 
     template<typename EBO>
-    void detach(const EBO& ebo)
+    void detach(const EBO& ebo) const
     {
         scoped_vao_bind sb(*this);
         ebo.unbind();
     }
     
-    void enable_attrib(std::size_t index)
+    void enable_attrib(std::size_t index) const
     {
         scoped_vao_bind sb(*this);
         glEnableVertexAttribArray(index);
     }
             
-    void disable_attrib(std::size_t index)
+    void disable_attrib(std::size_t index) const
     {
         scoped_vao_bind sb(*this);
         glDisableVertexAttribArray(index);
