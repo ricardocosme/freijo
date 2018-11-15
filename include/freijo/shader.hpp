@@ -18,6 +18,13 @@ struct vertex_t
 {
     static const GLenum glType{GL_VERTEX_SHADER};
     static constexpr const char* name{"Vertex"};
+};    
+    
+/// Represents a geometry shader
+struct geometry_t
+{
+    static const GLenum glType{GL_GEOMETRY_SHADER};
+    static constexpr const char* name{"Geometry"};
 };
 
 /// Represents a fragment shader
@@ -111,6 +118,7 @@ private:
 };
 
 using vertex_shader = shader<vertex_t>;
+using geometry_shader = shader<geometry_t>;
 using fragment_shader = shader<fragment_t>;
     
 } 
